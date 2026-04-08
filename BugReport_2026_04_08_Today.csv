@@ -1,0 +1,74 @@
+BugId,Status,MissingFields,RootCause,Fix_Versions,Commits/PR,GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments
+SEL-23737,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""},{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11792"",""value"":""Story testing"",""id"":""11792""}]",1,"{pullrequest={dataType=pullrequest, state=OPEN, stateCount=1}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":1,""lastUpdated"":""2026-04-08T17:32:47.000+0530"",""stateCount"":1,""state"":""OPEN"",""dataType"":""pullrequest"",""open"":true},""byInstanceType"":{""GitHub"":{""count"":1,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+SEL-23500,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""},{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11792"",""value"":""Story testing"",""id"":""11792""}]",1,"{pullrequest={dataType=pullrequest, state=MERGED, stateCount=3}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":3,""lastUpdated"":""2026-03-25T12:34:01.000+0530"",""stateCount"":3,""state"":""MERGED"",""dataType"":""pullrequest"",""open"":false},""byInstanceType"":{""GitHub"":{""count"":3,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+PDL-8557,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11792"",""value"":""Story testing"",""id"":""11792""}]",2,"{pullrequest={dataType=pullrequest, state=MERGED, stateCount=3}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":3,""lastUpdated"":""2026-03-31T19:07:55.000+0530"",""stateCount"":3,""state"":""MERGED"",""dataType"":""pullrequest"",""open"":false},""byInstanceType"":{""GitHub"":{""count"":3,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+FIN-8648,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""}]",1,"{pullrequest={dataType=pullrequest, state=OPEN, stateCount=1}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":1,""lastUpdated"":""2026-04-08T19:54:22.000+0530"",""stateCount"":1,""state"":""OPEN"",""dataType"":""pullrequest"",""open"":true},""byInstanceType"":{""GitHub"":{""count"":1,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+CAR-15211,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+CAR-14912,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""},{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/12300"",""value"":""Technical"",""id"":""12300""}]",2,"{pullrequest={dataType=pullrequest, state=MERGED, stateCount=7}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":7,""lastUpdated"":""2026-03-11T18:41:43.000+0530"",""stateCount"":7,""state"":""MERGED"",""dataType"":""pullrequest"",""open"":false},""byInstanceType"":{""GitHub"":{""count"":7,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+BUY-12959,🔴 Missing,Commits/PR,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/12282"",""value"":""Unknown"",""id"":""12282""}]",1,❌,2026-04-08 22:32:39,✅,✅
+BRS-1767,🔴 Missing,Commits/PR,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""}]",1,❌,2026-04-08 22:32:39,✅,✅
+BRS-1711,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7259,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7258,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7257,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7256,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7255,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7254,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7253,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7252,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7251,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7250,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7249,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7248,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7247,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7246,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7245,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7244,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7243,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7242,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7241,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7240,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7239,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7238,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7237,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7236,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7235,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,✅
+BPA-7234,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7233,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7232,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7231,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7230,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7229,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7228,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7227,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,✅
+BPA-7226,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7225,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7224,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7222,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7220,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7219,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,✅,❌
+BPA-7218,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7217,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-7216,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7174,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-7134,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,✅,❌
+BPA-6623,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-6619,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-6522,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-6400,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-6399,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-6304,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-5958,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-5732,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-5138,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-4565,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-4147,🔴 Missing,Root Cause(In Fields) | Commits/PR,❌,1,❌,2026-04-08 22:32:39,❌,❌
+BPA-1934,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-1926,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-1706,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-1666,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-1250,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-1248,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+BPA-681,🔴 Missing,Root Cause(In Fields) | Fix Version | Commits/PR,❌,❌,❌,2026-04-08 22:32:39,❌,❌
+AUC-13444,🔴 Missing,Fix Version,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11507"",""value"":""Developer implementation"",""id"":""11507""}]",❌,"{pullrequest={dataType=pullrequest, state=MERGED, stateCount=5}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":5,""lastUpdated"":""2026-04-08T17:39:00.000+0530"",""stateCount"":5,""state"":""MERGED"",""dataType"":""pullrequest"",""open"":false},""byInstanceType"":{""GitHub"":{""count"":5,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅
+AUC-13443,✅ All Good,None,"[{""self"":""https://api.atlassian.com/ex/jira/1e7f3193-c0ee-46ad-9522-d5e86521fa04/rest/api/3/customFieldOption/11792"",""value"":""Story testing"",""id"":""11792""}]",1,"{pullrequest={dataType=pullrequest, state=MERGED, stateCount=3}, json={""cachedValue"":{""errors"":[],""summary"":{""pullrequest"":{""overall"":{""count"":3,""lastUpdated"":""2026-04-08T12:31:15.000+0530"",""stateCount"":3,""state"":""MERGED"",""dataType"":""pullrequest"",""open"":false},""byInstanceType"":{""GitHub"":{""count"":3,""name"":""GitHub""}}}}},""isStale"":true}}",2026-04-08 22:32:39,✅,✅

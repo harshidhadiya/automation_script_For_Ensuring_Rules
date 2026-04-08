@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BugAuditScript")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bfde9742adb99e8400cb5d84d8a54c8ff0ab6b6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69334bd5f458eb294f331e21e0d32b158ed175b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("BugAuditScript")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BugAuditScript")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -402,24 +402,25 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\": {}
+    "/home/harshid/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\work2\\BugAuditScript\\BugAuditScript.csproj",
+      "projectUniqueName": "/home/harshid/Project_Practice/_net/automation_script_For_Ensuring_Rules/BugAuditScript.csproj",
       "projectName": "BugAuditScript",
-      "projectPath": "D:\\work2\\BugAuditScript\\BugAuditScript.csproj",
-      "packagesPath": "C:\\Users\\Harshid Hadiya\\.nuget\\packages\\",
-      "outputPath": "D:\\work2\\BugAuditScript\\obj\\",
+      "projectPath": "/home/harshid/Project_Practice/_net/automation_script_For_Ensuring_Rules/BugAuditScript.csproj",
+      "packagesPath": "/home/harshid/.nuget/packages/",
+      "outputPath": "/home/harshid/Project_Practice/_net/automation_script_For_Ensuring_Rules/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Harshid Hadiya\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/harshid/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
+        "/usr/lib/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -465,7 +466,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

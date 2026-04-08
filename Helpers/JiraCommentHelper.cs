@@ -1,40 +1,45 @@
-using System;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
+namespace BugAuditScript.Helpers;
+
 public static class JiraCommentHelper
 {
+    
+    private static readonly Regex RootCausePattern = new(
+        @"^\s*(root\s*cause|cause|root\s*cause\s*assessment)\s*:",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+
+    private static readonly Regex FixPattern = new(
+        @"^\s*(fix\s*applied|applied\s*fix|fix)\s*:",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+
+    // ─── Public API ───────────────────────────────────────────────────────────
+
     public static (bool hasRootCause, bool hasFix) CheckComments(JsonElement commentField)
     {
         bool hasRootCause = false;
-        bool hasFix = false;
+        bool hasFix       = false;
 
-        if (!commentField.TryGetProperty("comments", out JsonElement comments))
+        if (!commentField.TryGetProperty("comments", out var comments))
             return (false, false);
 
         foreach (var comment in comments.EnumerateArray())
         {
-            if (!comment.TryGetProperty("body", out JsonElement body))
+            if (!comment.TryGetProperty("body", out var body))
                 continue;
 
-            string text = ExtractPlainText(body);
-
+            var text = ExtractPlainText(body);
             if (string.IsNullOrWhiteSpace(text))
                 continue;
 
-            // ROOT CAUSE patterns
-            if (Regex.IsMatch(text, @"^\s*(root\s*cause|cause)\s*:", RegexOptions.IgnoreCase | RegexOptions.Multiline))
-            {
+            if (!hasRootCause && RootCausePattern.IsMatch(text))
                 hasRootCause = true;
-            }
 
-            if (Regex.IsMatch(text, @"^\s*(fix\s*applied|applied\s*fix|fix)\s*:\s*(.*)", RegexOptions.IgnoreCase | RegexOptions.Multiline))
-            {
+            if (!hasFix && FixPattern.IsMatch(text))
                 hasFix = true;
-            }
 
-            // Early exit if both found
             if (hasRootCause && hasFix)
                 break;
         }
@@ -42,35 +47,26 @@ public static class JiraCommentHelper
         return (hasRootCause, hasFix);
     }
 
-    private static string ExtractPlainText(JsonElement body)
+    private static string ExtractPlainText(JsonElement node)
     {
-        StringBuilder sb = new StringBuilder();
-        if (body.TryGetProperty("content", out JsonElement content))
+        var sb = new StringBuilder();
+
+        if (!node.TryGetProperty("content", out var content))
+            return sb.ToString();
+
+        foreach (var block in content.EnumerateArray())
         {
-            foreach (var block in content.EnumerateArray())
+            if (block.TryGetProperty("text", out var text))
             {
-                if (block.TryGetProperty("type", out var type))
-                {
-                    if (block.TryGetProperty("content", out var innerContent))
-                    {
-                        foreach (var node in innerContent.EnumerateArray())
-                        {
-                            if (node.TryGetProperty("type", out var nodeType))
-                            {
-                                if (node.TryGetProperty("text", out var text))
-                                {
-                                    sb.Append(text.GetString());
-                                }
-                                else
-                                {
-                                    sb.Append(ExtractPlainText(node));
-                                }
-                            }
-                        }
-                    }
-                    sb.AppendLine();
-                }
+                sb.Append(text.GetString());
             }
+            else
+            {
+                // Recurse into nested content (e.g. listItem, tableCell …)
+                sb.Append(ExtractPlainText(block));
+            }
+
+            sb.AppendLine();
         }
 
         return sb.ToString();
