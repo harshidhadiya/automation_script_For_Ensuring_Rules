@@ -4,10 +4,10 @@ using System.Text;
 using System.Text.Json;
 using BUGAUDITSCRIPT.Helpers;
 using Microsoft.Extensions.Configuration;
-
+File.WriteAllText("response.json", "");
 var input = args.Length > 0 ? args[0] : "Nothing";
 input = input.Trim();
-var gap = 100;
+var gap = 101;
 var start = 0;
 var fieldsDictonary = new Dictionary<string, string>
  {
@@ -37,6 +37,8 @@ var fileAdder = input switch
     "15" => "Last_15_Days",
     _ => "All"
 };
+var fileName = $"BugReport_{TimeHelper.Now().ToString("yyyy_MM_dd")}_{fileAdder}.csv";
+File.WriteAllText(fileName, "BugId,Status,MissingFields,RootCause,Fix,Commits/PR,GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments\n"); 
 Console.WriteLine(jql);
 Console.WriteLine("");
 
@@ -61,13 +63,12 @@ if (string.IsNullOrWhiteSpace(apiUrl) || string.IsNullOrWhiteSpace(email) || str
 var hasData = true;
 
 
-
-
-
+while (hasData)
+{
     var responseString = await HttpCalls.GetAsync(apiUrl, email, apiKey, jql);
     Console.WriteLine("Data fetched from API successfully.");
     var prettyResponse = Helper.printPretty(responseString);
-    File.WriteAllText("response.json", prettyResponse);
+    File.AppendAllText("response.json", prettyResponse);
 
 
 
@@ -88,8 +89,7 @@ var hasData = true;
     Console.WriteLine("------------------------------");
     Console.WriteLine();
     var csv = new StringBuilder();
-    csv.AppendLine("BugId,Status,MissingFields,RootCause,Fix,Commits/PR,GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments");
-
+   
 
 
     var datas = bugs.EnumerateArray().Where(x => x.GetProperty("fields").TryGetProperty("customfield_11001", out var env) && !string.IsNullOrWhiteSpace(env.ToString()) && !env.ToString().Equals("Production", StringComparison.OrdinalIgnoreCase));
@@ -150,7 +150,7 @@ var hasData = true;
         missingText=missingText.Replace("Root Cause ","Root Cause(In Fields) ");
         if(missingText.Equals("None") && !hasRootCause) missingText="Root Cause(In Comments)";
          if(missingText.Equals("None") && !hasFix) missingText="Fix(In Comments)";
-        //  if(!missingText.Contains("None") || !hasRootCause || !hasFix) continue ;
+         if(!missingText.Contains("None") || !hasRootCause || !hasFix) continue ;
         csv.AppendLine(string.Join(",",
             Helper.Escape(key),
             Helper.Escape(status),
@@ -163,10 +163,10 @@ var hasData = true;
             Helper.Escape(hasFix.ToString())
         ));
     }
-    var fileName = $"BugReport_{TimeHelper.Now().ToString("yyyy_MM_dd")}_{fileAdder}.csv";
-    File.WriteAllText(fileName, csv.ToString());
+    
+    File.AppendAllText(fileName, csv.ToString());
 
     Console.WriteLine();
     Console.WriteLine($"✅ CSV Generated: {fileName}");
 
-
+}
