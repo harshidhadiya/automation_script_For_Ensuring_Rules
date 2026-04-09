@@ -5,23 +5,10 @@ using BugAuditScript.Models;
 
 namespace BugAuditScript.HttpRequests;
 
-/// <summary>
-/// Handles all HTTP communication with the Jira REST API.
-/// Credentials are passed per-call so this class stays stateless and testable.
-/// </summary>
+
 public static class HttpCalls
 {
-    // ─── GET ──────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Sends an authenticated GET request and returns the raw JSON response body.
-    /// </summary>
-    /// <param name="baseUrl">The Jira API base URL (from config).</param>
-    /// <param name="email">Jira account email used for Basic Auth.</param>
-    /// <param name="apiKey">Jira API token used for Basic Auth.</param>
-    /// <param name="queryString">
-    /// Optional query string (e.g. "jql=...&amp;maxResults=100") appended to the URL.
-    /// </param>
+    
     public static async Task<string> GetAsync(
         string baseUrl,
         string email,
@@ -48,16 +35,7 @@ public static class HttpCalls
         }
     }
 
-    // ─── POST ─────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Sends an authenticated POST request with a <see cref="JiraSearchRequest"/>
-    /// body and returns the raw JSON response body.
-    /// </summary>
-    /// <param name="url">Full endpoint URL.</param>
-    /// <param name="email">Jira account email used for Basic Auth.</param>
-    /// <param name="apiKey">Jira API token used for Basic Auth.</param>
-    /// <param name="request">The search request payload to serialize as JSON.</param>
+   
     public static async Task<string> PostAsync(
         string url,
         string email,
@@ -83,11 +61,7 @@ public static class HttpCalls
         }
     }
 
-    // ─── Private helpers ──────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Creates a pre-configured <see cref="HttpClient"/> with Basic Auth headers.
-    /// </summary>
+ 
     private static HttpClient CreateClient(string email, string apiKey)
     {
         var client = new HttpClient();
