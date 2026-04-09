@@ -96,19 +96,19 @@ public class BugAuditRunner
             }
 
             fields.TryGetProperty("comment", out var commentField);
-            var (hasRootCause, hasFix) = JiraCommentHelper.CheckComments(commentField);
+            var (hasRootCause, hasFix,hasImpactDetails) = JiraCommentHelper.CheckComments(commentField);
 
-            Console.WriteLine($"  Bug {key} → RootCauseInComment:{hasRootCause}  FixInComment:{hasFix}");
+            Console.WriteLine($"  Bug {key} → RootCauseInComment:{hasRootCause}  FixInComment:{hasFix}  ImpactInComment:{hasImpactDetails}");
 
             var missing = CollectMissingFields(fields);
 
             PrintBugSummary(key, missing);
 
-            var missingText = BuildMissingText(missing, hasRootCause, hasFix);
+            // var missingText = BuildMissingText(missing, hasRootCause, hasFix,hasImpactDetails);
 
             // if (missingText == "None" && hasRootCause && hasFix)
             // {
-                csv.AppendLine(BuildCsvRow(key, missing, fields, hasRootCause, hasFix));
+                csv.AppendLine(BuildCsvRow(key, missing, fields, hasRootCause, hasFix, hasImpactDetails));
             // }
         }
 
@@ -157,12 +157,14 @@ public class BugAuditRunner
     private static string BuildMissingText(
         List<string> missing,
         bool hasRootCause,
-        bool hasFix)
+        bool hasFix,
+        bool hasImpactDetails)
     {
         if (!missing.Any())
         {
             if (!hasRootCause) return "Root Cause(In Comments)";
             if (!hasFix)       return "Fix(In Comments)";
+            if (!hasImpactDetails) return "Impact Details(In Comments)";
             return "None";
         }
 
@@ -176,10 +178,11 @@ public class BugAuditRunner
         List<string> missing,
         JsonElement fields,
         bool hasRootCause,
-        bool hasFix)
+        bool hasFix,
+        bool hasImpactDetails)
     {
         var status      = missing.Any() ? "🔴 Missing" : "✅ All Good";
-        var missingText = BuildMissingText(missing, hasRootCause, hasFix);
+        var missingText = BuildMissingText(missing, hasRootCause, hasFix,hasImpactDetails);
 
         var rootCause = fields.TryGetProperty("customfield_12608", out var rc)
             ? rc.ToString() : string.Empty;
@@ -197,7 +200,8 @@ public class BugAuditRunner
             Helper.Escape(pr),
             Helper.Escape(TimeHelper.Now().ToString("yyyy-MM-dd HH:mm:ss")),
             Helper.Escape(hasRootCause.ToString()),
-            Helper.Escape(hasFix.ToString())
+            Helper.Escape(hasFix.ToString()),
+            Helper.Escape(hasImpactDetails.ToString())
         );
     }
 
@@ -205,13 +209,13 @@ public class BugAuditRunner
     private static string BuildCsvFileName(string input)
     {
         var label = JqlQueryBuilder.GetFileLabel(input);
-        return $"BugReport_{TimeHelper.Now():yyyy_MM_dd_HH_mm}_{label}.csv";
+        return $"BugReport_{TimeHelper.Now():yyyy_MM_dd}_Time_{TimeHelper.Now():HH_mm}_{label}.csv";
     }
 
     private static void InitialiseCsvFile(string fileName)
         => File.WriteAllText(fileName,
             "BugId,Status,MissingFields,RootCause,Fix_Versions,Commits/PR," +
-            "GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments\n");
+            "GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments,Has_impact_details_in_comments\n");
 
 
     private static void PrintSectionHeader(string description)

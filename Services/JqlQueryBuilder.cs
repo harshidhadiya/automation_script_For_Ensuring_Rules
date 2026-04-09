@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace BugAuditScript.Services;
 
 public static class JqlQueryBuilder
@@ -10,6 +12,7 @@ public static class JqlQueryBuilder
 
     public static (string jql, string description) BuildQuery(string input) => input switch
     {
+      
         "0"  => (Build("updated >= startOfDay()"),     "Bugs updated today:"),
         "1"  => (Build("updated >= -1d"),               "Bugs updated in the last 24 hours:"),
         "7"  => (Build("updated >= -7d"),               "Bugs updated in the last 7 days:"),
