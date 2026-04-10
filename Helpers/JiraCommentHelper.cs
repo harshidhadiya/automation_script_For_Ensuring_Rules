@@ -6,38 +6,90 @@ namespace BugAuditScript.Helpers;
 
 public static class JiraCommentHelper
 {
-
+    
     private static readonly Regex RootCausePattern = new(
-        @"^\s*(root\s*cause|cause|root\s*cause\s*assessment)\s*:",
+        @"^\s*(root\s*cause|cause|root\s*cause\s*assessment)\s*",
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
     private static readonly Regex FixPattern = new(
-        @"^\s*(fix\s*applied|applied\s*fix|fix)\s*:",
+        @"^\s*(fix\s*applied|applied\s*fix|fix)\s*",
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
 //   this for the external right now we are not using things
-    private static readonly Regex ImpactPattern = new(
-      @"^\s*(number\s*of\s*business\s*transactions\s*affected|leadup\s*|bug\s*timespan|preventive\s*action\s*taken|affected\s*Business\s*users\s*Affected)\s*",
-        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
-    
     private static readonly Regex ImpactPattern1 = new(
-      @"^\s*leadup\s*",
+      @"^\s*leadup\s([^\n]+)*",
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
     
     private static readonly Regex ImpactPattern2 = new(
-        @"^\s*preventive\s*action\s*taken\s*",
+        @"^\s*preventive\s*action\s*taken\s*([^\n]+)",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ImpactPattern3 = new(
+        @"^\s*number\s*of\s*business\s*transactions\s*affected\s*([^\n]+)",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ImpactPattern4 = new(
+        @"^\s*bug\s*timespan\s*([^\n]+)",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ImpactPattern5 = new(
+        @"^\s*Tentative\s*release\s*date\s*([^\n]+)",
+        RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex ImpactPattern6 = new(
+        @"^\s*number\s*of\s*business\s*transactions\s*affected\s*([^\n]+)",
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
     // ─── Public API ───────────────────────────────────────────────────────────
 
-    public static (bool hasRootCause, bool hasFix, bool hasImpactDetail) CheckComments(JsonElement commentField)
+    public static (bool hasRootCause, bool hasFix, bool hasImpactDetail) CheckComments(JsonElement commentField,bool isCritical)
     {
         bool hasRootCause = false;
         bool hasFix = false;
         bool hasImpactDetail = false;
-        File.WriteAllText("impactedDetails.txt", string.Empty);
+        
 
         if (!commentField.TryGetProperty("comments", out var comments))
             return (false, false, false);
+        foreach (var comment in comments.EnumerateArray())
+        {
+            if (!comment.TryGetProperty("body", out var body))
+                continue;
+
+            var (text, impactedDetails) = ExtractPlainText(body);
+            if (string.IsNullOrWhiteSpace(text))
+                continue;
+            if (!hasRootCause && RootCausePattern.IsMatch(text))
+                hasRootCause = true;
+
+            if (!hasFix && FixPattern.IsMatch(text))
+                hasFix = true;
+            // File.AppendAllText("impactedDetails.txt", impactedDetails);
+            // File.AppendAllText("text.txt", text);
+           
+            if (!hasImpactDetail && ImpactPattern1.IsMatch(impactedDetails) && ImpactPattern2.IsMatch(impactedDetails)){
+            //    if(isCritical)
+            //     {
+            //         if(!ImpactPattern3.IsMatch(impactedDetails)&&ImpactPattern4.IsMatch(impactedDetails)&&ImpactPattern5.IsMatch(impactedDetails)&& ImpactPattern6.IsMatch(impactedDetails))
+            //         continue;
+
+            //     }
+
+                hasImpactDetail = true;
+            }
+            if (hasRootCause && hasFix && hasImpactDetail)
+                break;
+        }
+
+        return (hasRootCause, hasFix, hasImpactDetail);
+    }
+    public static (bool hasRootCause, bool hasFix, bool hasImpactDetail) CheckComments2(JsonDocument  commentField1,bool isCritical)
+    {
+        bool hasRootCause = false;
+        bool hasFix = false;
+        bool hasImpactDetail = false;
+        
+        // var commentField=commentField1.RootElement.GetProperty("comments");
+
+        
+        if (!commentField1.RootElement.TryGetProperty("comments", out var comments))
+            return (false, false, false);
+
 
         foreach (var comment in comments.EnumerateArray())
         {
@@ -47,16 +99,24 @@ public static class JiraCommentHelper
             var (text, impactedDetails) = ExtractPlainText(body);
             if (string.IsNullOrWhiteSpace(text))
                 continue;
-
             if (!hasRootCause && RootCausePattern.IsMatch(text))
                 hasRootCause = true;
 
             if (!hasFix && FixPattern.IsMatch(text))
                 hasFix = true;
-            File.AppendAllText("impactedDetails.txt", impactedDetails);
-            if (!hasImpactDetail && ImpactPattern1.IsMatch(impactedDetails) && ImpactPattern2.IsMatch(impactedDetails))
-                hasImpactDetail = true;
+            // File.AppendAllText("impactedDetails.txt", impactedDetails);
+            // File.AppendAllText("text.txt", text);
+           
+            if (!hasImpactDetail && ImpactPattern1.IsMatch(impactedDetails) && ImpactPattern2.IsMatch(impactedDetails)){
+            //    if(isCritical)
+            //     {
+            //         if(!ImpactPattern3.IsMatch(impactedDetails)&&ImpactPattern4.IsMatch(impactedDetails)&&ImpactPattern5.IsMatch(impactedDetails)&& ImpactPattern6.IsMatch(impactedDetails))
+            //         continue;
 
+            //     }
+
+                hasImpactDetail = true;
+            }
             if (hasRootCause && hasFix && hasImpactDetail)
                 break;
         }
@@ -74,7 +134,6 @@ public static class JiraCommentHelper
 
         foreach (var block in content.EnumerateArray())
         {
-            // 🔥 Detect TABLE properly
             if (block.TryGetProperty("type", out var type) && type.GetString() == "table")
             {
                 Console.WriteLine("  → Found a table in comments, extracting impacted details...");
@@ -93,9 +152,10 @@ public static class JiraCommentHelper
                 var (innerText, innerImpacted) = ExtractPlainText(block);
 
                 sb.Append(innerText);
+                
                 impactedSb.Append(innerImpacted);
             }
-
+            
             sb.AppendLine();
         }
 

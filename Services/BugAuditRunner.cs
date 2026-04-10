@@ -1,5 +1,7 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using BugAuditScript.Helpers;
 using BugAuditScript.HttpRequests;
 using BugAuditScript.Services;
@@ -13,22 +15,28 @@ public class BugAuditRunner
     private readonly string _apiUrl;
     private readonly string _email;
     private readonly string _apiKey;
+    private string _commentUrl;
+    private readonly Channel<string> csvChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
+    {
+        FullMode = BoundedChannelFullMode.Wait
+    });
 
 
     public BugAuditRunner(IConfiguration config)
     {
-        _apiUrl = config["AppSettings:api_url"]
-            ?? throw new InvalidOperationException("Missing config: AppSettings:api_url");
-        _email  = config["AppSettings:api_email"]
+        _apiUrl = config["AppSettings:issues_url"]
+            ?? throw new InvalidOperationException("Missing config: AppSettings:issues_url");
+        _email = config["AppSettings:api_email"]
             ?? throw new InvalidOperationException("Missing config: AppSettings:api_email");
-        _apiKey  = config["AppSettings:api_key"]
+        _apiKey = config["AppSettings:api_key"]
             ?? throw new InvalidOperationException("Missing config: AppSettings:api_key");
+        _commentUrl = config["AppSettings:comment_url"] ?? throw new InvalidOperationException("Missing config: AppSetting:comment_url");
     }
 
     public async Task RunAsync(string input)
     {
         var (jql, description) = JqlQueryBuilder.BuildQuery(input);
-        var csvFileName        = BuildCsvFileName(input);
+        var csvFileName = BuildCsvFileName(input);
 
         File.WriteAllText("response.json", string.Empty);
 
@@ -38,8 +46,9 @@ public class BugAuditRunner
         Console.WriteLine($">> Output: {csvFileName}\n");
 
         await FetchAndProcessAllPages(jql, description, csvFileName);
-
         Console.WriteLine($"\n✅ Done. Report saved to: {csvFileName}");
+        csvChannel.Writer.Complete();
+
     }
 
 
@@ -48,75 +57,176 @@ public class BugAuditRunner
         string description,
         string csvFileName)
     {
-        int  currentStart = 0;
+        int currentStart = 0;
         bool hasMorePages = true;
+        var writingTask = Task.Run(async () =>
+        {
+
+            using var csvStreamWriter = new StreamWriter(csvFileName, append: true);
+
+            await foreach (var row in csvChannel.Reader.ReadAllAsync())
+            {
+                await csvStreamWriter.WriteLineAsync(row);
+            }
+        });
+
 
         while (hasMorePages)
         {
             var rawJson = await HttpCalls.GetAsync(_apiUrl, _email, _apiKey, jql);
 
-            File.AppendAllText("response.json", Helper.PrettyPrint(rawJson));
+            // File.AppendAllText("response.json", Helper.PrettyPrint(rawJson));
 
             Console.WriteLine("Page fetched successfully.");
 
-            using var doc  = JsonDocument.Parse(rawJson);
-            var issues     = doc.RootElement.GetProperty("issues");
+            using var doc = JsonDocument.Parse(rawJson);
+            var issues = doc.RootElement.GetProperty("issues");
 
             hasMorePages = doc.RootElement.TryGetProperty("isLast", out var isLast)
                            && !isLast.GetBoolean();
 
             if (hasMorePages)
             {
-                jql           = JqlQueryBuilder.AdvancePage(jql, currentStart);
-                currentStart += 100;
+                jql = JqlQueryBuilder.AdvancePage(jql, currentStart);
+                currentStart += 1000;
                 Console.WriteLine($"Fetching next page (startAt={currentStart})…");
             }
 
             PrintSectionHeader(description);
 
-            var csv = ProcessPage(issues);
-            File.AppendAllText(csvFileName, csv);
+            // var csv =await this.ProcessPage(issues);
+            await this.ProcessPage(issues);
+            // File.AppendAllText(csvFileName, csv);
         }
     }
 
-    private static string ProcessPage(JsonElement issues)
+
+
+
+    private async Task FetchAllComments(string issueKey, int totals, bool flag, JsonElement fields)
+    {
+
+
+        var (hasRootcause1, hasFix1, hasImpact1) = (false, false, false);
+        totals = (int)Math.Ceiling((decimal)totals / 20);
+        var channel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
+        {
+            FullMode = BoundedChannelFullMode.Wait
+        });
+        var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var readTask = Task.Run(async () =>
+        {
+
+
+            await foreach (var row in channel.Reader.ReadAllAsync())
+            {
+                var data = row;
+                if (data != null)
+                {
+                    using var datas = JsonDocument.Parse(data);
+                    var (hasRootCause, hasFix, hasImpact) = JiraCommentHelper.CheckComments2(datas, flag);
+                    if (!hasRootcause1 && hasRootCause)
+                        hasRootcause1 = true;
+                    if (!hasFix1 && hasFix)
+                        hasFix1 = true;
+                    if (!hasImpact1 && hasImpact)
+                        hasImpact1 = true;
+                    if (hasRootcause1 && hasFix1 && hasImpact1)
+                    {
+
+                        cancellation.Cancel();
+                    }
+                }
+            }
+        }, token);
+        var current = _commentUrl.Replace("{issueKey}", issueKey);
+        var producer = Enumerable.Range(0, totals).Select(async i =>
+        {
+            var semaphores = new SemaphoreSlim(5);
+            var query = JqlQueryBuilder.getStringCorrect(i * 20);
+            try
+            {
+                var result = await HttpCalls.GetAsync(current, _email, _apiKey, query);
+                await channel.Writer.WriteAsync(result);
+            }
+            finally
+            {
+                semaphores.Release();
+            }
+        });
+
+        await Task.WhenAll(producer);
+        channel.Writer.Complete();
+        await readTask;
+        await csvChannel.Writer.WriteAsync(BuildCsvRow(issueKey, CollectMissingFields(fields), fields, hasRootcause1, hasFix1, hasImpact1));
+
+    }
+
+    private async Task<string> ProcessPage(JsonElement issues)
     {
         var csv = new StringBuilder();
-
+        var taskList = new List<Task>();
         foreach (var bug in issues.EnumerateArray())
         {
-            var key    = bug.GetProperty("key").GetString()!;
-            var fields = bug.GetProperty("fields");
-
-            var environment = GetEnvironment(fields);
-            if (string.IsNullOrWhiteSpace(environment)
-                || !environment.Equals("Production", StringComparison.OrdinalIgnoreCase))
+            var work = Task.Run(async () =>
             {
-                continue; 
-            }
 
-            fields.TryGetProperty("comment", out var commentField);
-            var (hasRootCause, hasFix,hasImpactDetails) = JiraCommentHelper.CheckComments(commentField);
 
-            Console.WriteLine($"  Bug {key} → RootCauseInComment:{hasRootCause}  FixInComment:{hasFix}  ImpactInComment:{hasImpactDetails}");
+                var key = bug.GetProperty("key").GetString()!;
+                var fields = bug.GetProperty("fields");
 
-            var missing = CollectMissingFields(fields);
+                var environment = GetEnvironment(fields);
 
-            PrintBugSummary(key, missing);
+                var totals = 0;
+                if (fields.TryGetProperty("comment", out var commentField))
+                {
+                    if (commentField.TryGetProperty("total", out var total))
+                    {
+                        totals = int.Parse(total.ToString());
+                    }
+                }
+                var flag = true;
+                if (fields.TryGetProperty("priority", out var criticality))
+                {
+                    if (criticality.TryGetProperty("name", out var value))
+                    {
+                        if (!string.IsNullOrEmpty(value.ToString()) && value.ToString().Equals("Critical", StringComparison.OrdinalIgnoreCase))
+                            flag = true;
 
-            // var missingText = BuildMissingText(missing, hasRootCause, hasFix,hasImpactDetails);
+                        else flag = false;
+                        Console.WriteLine(value.ToString() + "Here is the priority value from the jira related to current bug" + flag.ToString());
+                    }
+                }
 
-            // if (missingText == "None" && hasRootCause && hasFix)
-            // {
-                csv.AppendLine(BuildCsvRow(key, missing, fields, hasRootCause, hasFix, hasImpactDetails));
-            // }
+
+                await this.FetchAllComments(key, totals, flag, fields);
+
+
+                // var (hasRootCause, hasFix, hasImpactDetails) = JiraCommentHelper.CheckComments(commentField, flag);
+
+                // Console.WriteLine($"  Bug {key} → RootCauseInComment:{hasRootCause}  FixInComment:{hasFix}  ImpactInComment:{hasImpactDetails}");
+
+                // var missing = CollectMissingFields(fields);
+
+                // PrintBugSummary(key, missing);
+
+                // var missingText = BuildMissingText(missing, hasRootCause, hasFix,hasImpactDetails);
+
+                // if (missingText == "None" && hasRootCause && hasFix)
+                // {
+                // csv.AppendLine(BuildCsvRow(key, missing, fields, hasRootCause, hasFix, hasImpactDetails));
+                // }
+
+            });
+            taskList.Add(work);
         }
-
+        await Task.WhenAll(taskList);
         return csv.ToString();
     }
 
 
-    
+
     private static string GetEnvironment(JsonElement fields)
     {
         if (fields.TryGetProperty("customfield_11001", out var env)
@@ -132,10 +242,11 @@ public class BugAuditRunner
     {
         var missing = new List<string>();
 
-        var rootCause = fields.TryGetProperty("customfield_12608", out var rc)
-            ? rc.ToString()
-            : string.Empty;
-        if (string.IsNullOrWhiteSpace(rootCause) || rootCause == "null")
+        var rootCause = fields.TryGetProperty("customfield_12608", out var rc) &&
+                 rc.ValueKind == JsonValueKind.Array
+     ? rc.EnumerateArray().Count()
+     : 0;
+        if (rootCause == 0)
             missing.Add("Root Cause");
 
         var fixCount = fields.TryGetProperty("fixVersions", out var fx)
@@ -163,7 +274,7 @@ public class BugAuditRunner
         if (!missing.Any())
         {
             if (!hasRootCause) return "Root Cause(In Comments)";
-            if (!hasFix)       return "Fix(In Comments)";
+            if (!hasFix) return "Fix(In Comments)";
             if (!hasImpactDetails) return "Impact Details(In Comments)";
             return "None";
         }
@@ -181,8 +292,8 @@ public class BugAuditRunner
         bool hasFix,
         bool hasImpactDetails)
     {
-        var status      = missing.Any() ? "🔴 Missing" : "✅ All Good";
-        var missingText = BuildMissingText(missing, hasRootCause, hasFix,hasImpactDetails);
+        var status = missing.Any() ? "🔴 Missing" : "✅ All Good";
+        var missingText = BuildMissingText(missing, hasRootCause, hasFix, hasImpactDetails);
 
         var rootCause = fields.TryGetProperty("customfield_12608", out var rc)
             ? rc.ToString() : string.Empty;

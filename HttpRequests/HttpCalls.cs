@@ -40,7 +40,7 @@ public static class HttpCalls
         string url,
         string email,
         string apiKey,
-        JiraSearchRequest request)
+        object request)
     {
         using var httpClient = CreateClient(email, apiKey);
 

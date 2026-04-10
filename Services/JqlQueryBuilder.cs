@@ -7,8 +7,8 @@ public static class JqlQueryBuilder
     private const string Fields =
         "fixVersions,customfield_11001,customfield_12608,customfield_11900,comment,status";
 
-    private const int PageSize = 100;
-
+    private const int PageSize = 1000;
+    private const int commentPageSize =20;
 
     public static (string jql, string description) BuildQuery(string input) => input switch
     {
@@ -46,7 +46,21 @@ public static class JqlQueryBuilder
         string baseJql = dateFilter is null
             ? "issuetype=Bug AND statusCategory = \"Done\""
             : $"issuetype=Bug AND {dateFilter} AND statusCategory = \"Done\"";
+            baseJql+="AND cf[11001] = \"Production\"";
         baseJql=Uri.EscapeDataString(baseJql);
         return $"jql={baseJql}&fields={Fields}&maxResults={PageSize}&startAt=0";
     }
+     public static string getCommentQuery()=>$"startAt=0&maxResults={commentPageSize}";
+     public static string IntialForAllBugs(string input)
+    {
+       var newQuery="issuetype=Bug AND statusCategory = \"Done\" AND cf[11001] = \"Production\"";
+
+        return "jql="+Uri.EscapeDataString(newQuery)+"&fields=id&maxResults=0";
+    }
+    
+    public static string getStringCorrect(int startAt)=>$"startAt={startAt}&maxResults={commentPageSize}";
+
+
+    public static string IntialForComments()=>"maxResults=0&fields=id";
+    public static string advancePageComments(string query,int currentStart)=> query.Replace($"startAt={currentStart}",$"startAt={currentStart+commentPageSize}");
 }
