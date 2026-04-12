@@ -7,7 +7,7 @@ public static class JqlQueryBuilder
     private const string Fields =
         "fixVersions,customfield_11001,customfield_12608,customfield_11900,comment,status";
 
-    private const int PageSize = 1000;
+    private const int PageSize = 100;
     private const int commentPageSize =20;
 
     public static (string jql, string description) BuildQuery(string input) => input switch
@@ -15,7 +15,11 @@ public static class JqlQueryBuilder
       
         "0"  => (Build("updated >= startOfDay()"),     "Bugs updated today:"),
         "1"  => (Build("updated >= -1d"),               "Bugs updated in the last 24 hours:"),
-        "7"  => (Build("updated >= -7d"),               "Bugs updated in the last 7 days:"),
+        "3"  => (Build("updated >= -3d"),               "Bugs updated in the last 3 days:"),
+        "4"  => (Build("updated >= -4d"),               "Bugs updated in the last 4 days:"),
+        "5"  => (Build("updated >= -5d"),               "Bugs updated in the last 5 days:"),
+        "6"  => (Build("updated >= -6d"),               "Bugs updated in the last 6 days:"),
+        "7"  => (Build("updated >= startOfWeek(-1w)"),               "Bugs updated in the last 7 days:"),
         "15" => (Build("updated >= -15d"),              "Bugs updated in the last 15 days:"),
         "30" => (Build("updated >= -30d"),              "Bugs updated in the last 30 days:"),
         "60" => (Build("updated >= -60d"),              "Bugs updated in the last 60 days:"),
@@ -28,6 +32,10 @@ public static class JqlQueryBuilder
     {
         "0"  => "Today",
         "1"  => "Last_24_Hours",
+        "3"  => "Last_3_Days",
+        "4"  => "Last_4_Days",
+        "5"  => "Last_5_Days",
+        "6"  => "Last_6_Days",
         "7"  => "Last_7_Days",
         "15" => "Last_15_Days",
         "30" => "Last_30_Days",
@@ -44,11 +52,11 @@ public static class JqlQueryBuilder
     private static string Build(string? dateFilter)
     {
         string baseJql = dateFilter is null
-            ? "issuetype=Bug AND statusCategory = \"Done\""
-            : $"issuetype=Bug AND {dateFilter} AND statusCategory = \"Done\"";
-            baseJql+="AND cf[11001] = \"Production\"";
+            ? "issuetype=Bug AND statusCategory = \"Done\" "
+            : $"issuetype=Bug AND {dateFilter} AND statusCategory = \"Done\" ";
+            baseJql+="AND customfield_11001 = \"Production\"";
         baseJql=Uri.EscapeDataString(baseJql);
-        return $"jql={baseJql}&fields={Fields}&maxResults={PageSize}&startAt=0";
+        return $"jql={baseJql}&fields={Fields}&maxResults={PageSize}";
     }
      public static string getCommentQuery()=>$"startAt=0&maxResults={commentPageSize}";
      public static string IntialForAllBugs(string input)

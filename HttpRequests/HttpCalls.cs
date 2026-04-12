@@ -13,13 +13,14 @@ public static class HttpCalls
         string baseUrl,
         string email,
         string apiKey,
-        string queryString = "")
+        string queryString = "",string nextPageToken="")
     {
         using var httpClient = CreateClient(email, apiKey);
 
         var url = string.IsNullOrEmpty(queryString)
             ? baseUrl
             : $"{baseUrl}?{queryString}";
+        url=string.IsNullOrEmpty(nextPageToken) ? url : $"{url}&nextPageToken={nextPageToken}";
 
         Console.WriteLine($"[HTTP GET] {url}");
 
