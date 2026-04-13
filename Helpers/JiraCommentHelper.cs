@@ -36,7 +36,7 @@ public static class JiraCommentHelper
         @"^\s*number\s*of\s*business\s*transactions\s*affected\s*([^\n]+)",
         RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
     // ─── Public API ───────────────────────────────────────────────────────────
-
+// this below function is not using we are using the second functions 
     public static (bool hasRootCause, bool hasFix, bool hasImpactDetail) CheckComments(JsonElement commentField,bool isCritical)
     {
         bool hasRootCause = false;
@@ -59,8 +59,6 @@ public static class JiraCommentHelper
 
             if (!hasFix && FixPattern.IsMatch(text))
                 hasFix = true;
-            // File.AppendAllText("impactedDetails.txt", impactedDetails);
-            // File.AppendAllText("text.txt", text);
            
             if (!hasImpactDetail && ImpactPattern1.IsMatch(impactedDetails) && ImpactPattern2.IsMatch(impactedDetails)){
             //    if(isCritical)
@@ -84,7 +82,6 @@ public static class JiraCommentHelper
         bool hasFix = false;
         bool hasImpactDetail = false;
         
-        // var commentField=commentField1.RootElement.GetProperty("comments");
 
         
         if (!commentField1.RootElement.TryGetProperty("comments", out var comments))
@@ -104,8 +101,6 @@ public static class JiraCommentHelper
 
             if (!hasFix && FixPattern.IsMatch(text))
                 hasFix = true;
-            // File.AppendAllText("impactedDetails.txt", impactedDetails);
-            // File.AppendAllText("text.txt", text);
            
             if (!hasImpactDetail && ImpactPattern1.IsMatch(impactedDetails) && ImpactPattern2.IsMatch(impactedDetails)){
             //    if(isCritical)
