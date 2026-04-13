@@ -6,7 +6,6 @@ using BugAuditScript.Helpers;
 using BugAuditScript.HttpRequests;
 using BugAuditScript.Services;
 using Microsoft.Extensions.Configuration;
-
 namespace BugAuditScript.Services;
 
 public class BugAuditRunner
@@ -23,7 +22,6 @@ public class BugAuditRunner
     private readonly Channel<string> _responseChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(500));
 
 
-    // Global semaphore to limit concurrent HTTP requests to Jira API
     private readonly SemaphoreSlim _httpSemaphore = new(10);
 
     public BugAuditRunner(IConfiguration config)
@@ -50,10 +48,13 @@ public class BugAuditRunner
         })).ToList();
     }
 
-    public async Task RunAsync(string input)
-    {
-        var (jql, description) = JqlQueryBuilder.BuildQuery(input);
-        var csvFileName = BuildCsvFileName(input);
+    public async Task RunAsync(string input,string? input1="",string? input2="")
+    {   
+         Console.WriteLine(input1);
+         Console.WriteLine(input2);
+        //  return ;
+        var (jql,description) = JqlQueryBuilder.BuildQuery(input,input1,input2);
+        var csvFileName = BuildCsvFileName(input,input1,input2);
         var workers = StartWorkers(5);
         File.WriteAllText("response.json", string.Empty);
         InitialiseCsvFile(csvFileName);
@@ -96,45 +97,7 @@ public class BugAuditRunner
         Console.WriteLine($"\n✅ Done. Report saved to: {csvFileName}");
     }
 
-    // private async Task FetchAndProcessAllPages(string jql, string description)
-    // {
-    //     int currentStart = 0;
-    //     bool hasMorePages = true;
-
-    //     while (hasMorePages)
-    //     {
-    //         // Throttling page fetches as well
-    //         await _httpSemaphore.WaitAsync();
-    //         string rawJson;
-    //         try
-    //         {
-    //             rawJson = await HttpCalls.GetAsync(_apiUrl, _email, _apiKey, jql);
-    //         }
-    //         finally
-    //         {
-    //             _httpSemaphore.Release();
-    //         }
-
-    //         Console.WriteLine("Page fetched successfully.");
-
-    //         using var doc = JsonDocument.Parse(rawJson);
-    //         var issues = doc.RootElement.GetProperty("issues");
-
-    //         hasMorePages = doc.RootElement.TryGetProperty("isLast", out var isLast)
-    //                        && !isLast.GetBoolean();
-
-    //         if (hasMorePages)
-    //         {
-    //             jql = JqlQueryBuilder.AdvancePage(jql, currentStart);
-    //             currentStart += issues.GetArrayLength();
-    //             Console.WriteLine($"Fetching next page (startAt={currentStart})…");
-    //         }
-
-    //         PrintSectionHeader(description);
-    //             await _issueChannel.Writer.WriteAsync(issues.Clone());
-    //     }
-    // }
-
+   
 
     private async Task FetchAndProcessAllPages(string jql, string description)
     {
@@ -274,17 +237,7 @@ public class BugAuditRunner
         });
     }
 
-    private static string GetEnvironment(JsonElement fields)
-    {
-        if (fields.TryGetProperty("customfield_11001", out var env)
-            && env.ValueKind == JsonValueKind.Object
-            && env.TryGetProperty("value", out var val))
-        {
-            return val.GetString() ?? string.Empty;
-        }
-        return string.Empty;
-    }
-
+    
     private static List<string> CollectMissingFields(JsonElement fields, bool hasRoot, bool hasFix, bool hasImpact)
     {
         bool switchingFlag=true;
@@ -375,9 +328,9 @@ public class BugAuditRunner
         );
     }
 
-    private static string BuildCsvFileName(string input)
+    private static string BuildCsvFileName(string input,string startDate="",string EndDate="")
     {
-        var label = JqlQueryBuilder.GetFileLabel(input);
+        var label = JqlQueryBuilder.GetFileLabel(input,startDate,EndDate);
         return $"BugReport_{TimeHelper.Now():yyyy_MM_dd}_Time_{TimeHelper.Now():HH_mm}_{label}.csv";
     }
 
