@@ -5,7 +5,7 @@ namespace BugAuditScript.Services;
 public static class JqlQueryBuilder
 {
     private const string Fields =
-        "fixVersions,customfield_11001,customfield_12608,customfield_11900,comment,status";
+        "fixVersions,customfield_12608,customfield_11900,comment,status";
 
     private const int PageSize = 100;
     private const int commentPageSize = 20;

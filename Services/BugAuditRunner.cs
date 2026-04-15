@@ -55,6 +55,7 @@ public class BugAuditRunner
         //  return ;
         var (jql,description) = JqlQueryBuilder.BuildQuery(input,input1,input2);
         var csvFileName = BuildCsvFileName(input,input1,input2);
+        var xlnsFileName=csvFileName.Replace(".csv",".xlsx");
         var workers = StartWorkers(5);
         File.WriteAllText("response.json", string.Empty);
         InitialiseCsvFile(csvFileName);
@@ -94,6 +95,7 @@ public class BugAuditRunner
         await writingTask;
         _responseChannel.Writer.Complete();
         await writingResponseTask ;
+        // CsvToExcelConverter.Convert(csvFileName,xlnsFileName);
         Console.WriteLine($"\n✅ Done. Report saved to: {csvFileName}");
     }
 
@@ -213,7 +215,8 @@ public class BugAuditRunner
             {
                 var key = bug.GetProperty("key").GetString()!;
                 var fields = bug.GetProperty("fields");
-
+                if(key.Contains("BPA"))
+                return;
                 int totalComments = 0;
                 if (fields.TryGetProperty("comment", out var commentField) &&
                     commentField.TryGetProperty("total", out var total))
@@ -315,7 +318,7 @@ public class BugAuditRunner
           rootCause=string.Empty;
         }
         return string.Join(",",
-            Helper.Escape(key, true),
+            Helper.MakeJiraLink(key),
             Helper.Escape(status, true),
             Helper.Escape(missingText, true),
             Helper.Escape(rootCause),
