@@ -1,6 +1,10 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using BUGAUDITSCRIPT;
+using DocumentFormat.OpenXml.Office.PowerPoint.Y2021.M06.Main;
+using DocumentFormat.OpenXml.Presentation;
+using Microsoft.VisualBasic.FileIO;
 
 namespace BugAuditScript.Helpers;
 
@@ -76,5 +80,36 @@ public static class Helper
         return JsonSerializer.Serialize(
             JsonSerializer.Deserialize<object>(json),
             options);
+    }
+
+
+    // this would help for the finding out the all the fields in the row
+
+    public static List<BugRow> readCsv(string path)
+    {
+        List<BugRow> list=new ();
+        using var parser=new TextFieldParser(path);
+        parser.SetDelimiters(",");
+        parser.HasFieldsEnclosedInQuotes=true;
+        parser.ReadLine();
+        while(!parser.EndOfData)
+        {
+            var col=parser.ReadFields();
+            if(col!=null && col.Length!=0)
+            list.Add(new BugRow
+            {
+                BugId=col[0],
+                Status=col[1],
+                MissingFields=col[2],
+                RootCause=col[3],
+                FixVersions=col[4],
+                CommitsPR=col[5],
+                GeneratedAtIST=col[6],
+                HasRootCause=col[7],
+                HasFix=col[8],
+                HasImpact=col[9]
+            });
+        }
+        return list;
     }
 }

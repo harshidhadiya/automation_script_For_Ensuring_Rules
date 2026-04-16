@@ -5,6 +5,8 @@ using System.Threading.Channels;
 using BugAuditScript.Helpers;
 using BugAuditScript.HttpRequests;
 using BugAuditScript.Services;
+using BUGAUDITSCRIPT.GoogleSheetUtility;
+using Google.Apis.Logging;
 using Microsoft.Extensions.Configuration;
 namespace BugAuditScript.Services;
 
@@ -95,7 +97,12 @@ public class BugAuditRunner
         await writingTask;
         _responseChannel.Writer.Complete();
         await writingResponseTask ;
-        // CsvToExcelConverter.Convert(csvFileName,xlnsFileName);
+
+
+        var spreadsheetvalues=GoogleSheet.GetService().Spreadsheets.Values;
+        Console.WriteLine("datas of from the services");
+        await GoogleSheet.UpsertToGoogleSheet(csvFileName);
+  
         Console.WriteLine($"\n✅ Done. Report saved to: {csvFileName}");
     }
 
