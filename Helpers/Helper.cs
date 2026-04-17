@@ -11,6 +11,10 @@ namespace BugAuditScript.Helpers;
 
 public static class Helper
 {
+    public static string logFilePath= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
+
+
+    public static List<string> fields=new List<string>{"BugId","Status","MissingFields","RootCause","Fix_Versions","Commits/PR","GeneratedAtIST","Has_root_cause_in_comments","Has_fix_in_comments","Has_impact_details_in_comments"};
     public static readonly Regex DateRegex =
       new(@"^\d{4}-\d{2}-\d{2}$", RegexOptions.Compiled);
     public static bool IsValidDate(string input)
@@ -87,29 +91,37 @@ public static class Helper
 
     public static List<BugRow> readCsv(string path)
     {
-        List<BugRow> list=new ();
-        using var parser=new TextFieldParser(path);
+        List<BugRow> list = new();
+        using var parser = new TextFieldParser(path);
         parser.SetDelimiters(",");
-        parser.HasFieldsEnclosedInQuotes=true;
+        parser.HasFieldsEnclosedInQuotes = true;
         parser.ReadLine();
-        while(!parser.EndOfData)
+        while (!parser.EndOfData)
         {
-            var col=parser.ReadFields();
-            if(col!=null && col.Length!=0)
-            list.Add(new BugRow
-            {
-                BugId=col[0],
-                Status=col[1],
-                MissingFields=col[2],
-                RootCause=col[3],
-                FixVersions=col[4],
-                CommitsPR=col[5],
-                GeneratedAtIST=col[6],
-                HasRootCause=col[7],
-                HasFix=col[8],
-                HasImpact=col[9]
-            });
+            var col = parser.ReadFields();
+            if (col != null && col.Length != 0)
+                list.Add(new BugRow
+                {
+                    BugId = col[0],
+                    Status = col[1],
+                    MissingFields = col[2],
+                    RootCause = col[3],
+                    FixVersions = col[4],
+                    CommitsPR = col[5],
+                    GeneratedAtIST = col[6],
+                    HasRootCause = col[7],
+                    HasFix = col[8],
+                    HasImpact = col[9]
+                });
         }
         return list;
+    }
+    public static void Log(string message)
+    {
+      
+        Console.WriteLine(logFilePath + "this is the logfile path");
+        var path=PathUtility.EnsureFile(logFilePath);
+        
+        File.AppendAllText(path, $"{DateTime.Now}: {message}{Environment.NewLine}");
     }
 }

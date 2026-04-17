@@ -6,6 +6,7 @@ using BugAuditScript.Helpers;
 using BugAuditScript.HttpRequests;
 using BugAuditScript.Services;
 using BUGAUDITSCRIPT.GoogleSheetUtility;
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using Google.Apis.Logging;
 using Microsoft.Extensions.Configuration;
 namespace BugAuditScript.Services;
@@ -16,15 +17,18 @@ public class BugAuditRunner
     private readonly string _email;
     private readonly string _apiKey;
     private readonly string _commentUrl;
+    private readonly string _csvFileFolder;
     private readonly Channel<string> csvChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
     {
         FullMode = BoundedChannelFullMode.Wait
     });
     private readonly Channel<JsonElement> _issueChannel = Channel.CreateBounded<JsonElement>(new BoundedChannelOptions(500));
     private readonly Channel<string> _responseChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(500));
-
+    private readonly string _credentialPath;
+    private string directory_of_csv=AppDomain.CurrentDomain.BaseDirectory;
 
     private readonly SemaphoreSlim _httpSemaphore = new(10);
+    private readonly string _spreadsheetid;
 
     public BugAuditRunner(IConfiguration config)
     {
@@ -36,6 +40,10 @@ public class BugAuditRunner
             ?? throw new InvalidOperationException("Missing config: AppSettings:api_key");
         _commentUrl = config["AppSettings:comment_url"]
             ?? throw new InvalidOperationException("Missing config: AppSetting:comment_url");
+        _credentialPath = config["AppSettings:credential_file_path"] ?? throw new InvalidOperationException("Missing Config : AppSettings:credential_file_path");
+        _csvFileFolder= config["AppSettings:output"] ?? throw new InvalidOperationException("Missing Config : AppSettings:output");
+        _spreadsheetid = config["AppSettings:spread_sheet_id"] ?? throw new InvalidOperationException("Missing Config : AppSettings:spread_sheet_id");
+
     }
 
     private List<Task> StartWorkers(int workerCount)
@@ -50,14 +58,18 @@ public class BugAuditRunner
         })).ToList();
     }
 
-    public async Task RunAsync(string input,string? input1="",string? input2="")
-    {   
-         Console.WriteLine(input1);
-         Console.WriteLine(input2);
-        //  return ;
-        var (jql,description) = JqlQueryBuilder.BuildQuery(input,input1,input2);
-        var csvFileName = BuildCsvFileName(input,input1,input2);
-        var xlnsFileName=csvFileName.Replace(".csv",".xlsx");
+    public async Task RunAsync(string input, string? input1 = "", string? input2 = "", bool flag = false,bool flagPushInSheet=false)
+    {
+        var (jql, description) = JqlQueryBuilder.BuildQuery(input, input1, input2);
+        var csvFileName = BuildCsvFileName(input, input1, input2);
+        
+        if(!string.IsNullOrEmpty(_csvFileFolder))
+        {
+            if(!PathUtility.DirectoryExistsStrict(_csvFileFolder))  throw new DirectoryNotFoundException($"{_csvFileFolder} in your configuration file not exist like in the example config.json ");
+            directory_of_csv=_csvFileFolder;
+        }
+
+        csvFileName = Path.Combine(directory_of_csv, csvFileName);
         var workers = StartWorkers(5);
         File.WriteAllText("response.json", string.Empty);
         InitialiseCsvFile(csvFileName);
@@ -96,17 +108,19 @@ public class BugAuditRunner
         csvChannel.Writer.Complete();
         await writingTask;
         _responseChannel.Writer.Complete();
-        await writingResponseTask ;
+        await writingResponseTask;
 
 
-        var spreadsheetvalues=GoogleSheet.GetService().Spreadsheets.Values;
         Console.WriteLine("datas of from the services");
-        await GoogleSheet.UpsertToGoogleSheet(csvFileName);
-  
+        if(flagPushInSheet)
+        await GoogleSheet.UpsertToGoogleSheet(csvFileName, _credentialPath,_spreadsheetid);
+        if (flag)
+            DeleteCsvFile(csvFileName);
+        Helper.Log($"\n✅ Done. Report saved to: {csvFileName}");
         Console.WriteLine($"\n✅ Done. Report saved to: {csvFileName}");
     }
 
-   
+
 
     private async Task FetchAndProcessAllPages(string jql, string description)
     {
@@ -222,8 +236,8 @@ public class BugAuditRunner
             {
                 var key = bug.GetProperty("key").GetString()!;
                 var fields = bug.GetProperty("fields");
-                if(key.Contains("BPA"))
-                return;
+                if (key.Contains("BPA"))
+                    return;
                 int totalComments = 0;
                 if (fields.TryGetProperty("comment", out var commentField) &&
                     commentField.TryGetProperty("total", out var total))
@@ -247,20 +261,21 @@ public class BugAuditRunner
         });
     }
 
-    
+
     private static List<string> CollectMissingFields(JsonElement fields, bool hasRoot, bool hasFix, bool hasImpact)
     {
-        bool switchingFlag=true;
+        bool switchingFlag = true;
         var missing = new List<string>();
 
         var rootCauseCount = fields.TryGetProperty("customfield_12608", out var rc) &&
                              rc.ValueKind == JsonValueKind.Array
             ? rc.EnumerateArray().Count()
             : 0;
-        if (rootCauseCount == 0 && !hasRoot){
+        if (rootCauseCount == 0 && !hasRoot)
+        {
             missing.Add("Root Cause [ In Fields | In Comments ]");
-             switchingFlag=false;
-            }
+            switchingFlag = false;
+        }
         if (rootCauseCount == 0 && switchingFlag)
             missing.Add("Root Cause ( In Field )");
 
@@ -319,10 +334,10 @@ public class BugAuditRunner
             ? fx.EnumerateArray().Count() : 0;
         var pr = fields.TryGetProperty("customfield_11900", out var prEl)
             ? prEl.ToString() : string.Empty;
-        
+
         if (rc.ValueKind == JsonValueKind.Null)
         {
-          rootCause=string.Empty;
+            rootCause = string.Empty;
         }
         return string.Join(",",
             Helper.MakeJiraLink(key),
@@ -338,17 +353,15 @@ public class BugAuditRunner
         );
     }
 
-    private static string BuildCsvFileName(string input,string startDate="",string EndDate="")
+    private static string BuildCsvFileName(string input, string startDate = "", string EndDate = "")
     {
-        var label = JqlQueryBuilder.GetFileLabel(input,startDate,EndDate);
+        var label = JqlQueryBuilder.GetFileLabel(input, startDate, EndDate);
         return $"BugReport_{TimeHelper.Now():yyyy_MM_dd}_Time_{TimeHelper.Now():HH_mm}_{label}.csv";
     }
 
     private static void InitialiseCsvFile(string fileName)
-        => File.WriteAllText(fileName,
-            "BugId,Status,MissingFields,RootCause,Fix_Versions,Commits/PR," +
-            "GeneratedAtIST,Has_root_cause_in_comments,Has_fix_in_comments,Has_impact_details_in_comments\n");
-
+        => File.WriteAllText(fileName, String.Join(",", Helper.fields));
+    private static void DeleteCsvFile(string fileName) => File.Delete(fileName);
     private static void PrintSectionHeader(string description)
     {
         Console.WriteLine();
